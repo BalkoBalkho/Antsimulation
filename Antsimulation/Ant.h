@@ -3,27 +3,29 @@
 #include "World.h"
 #include <stack>
 #include <array>
-#include <queue>
-
-
-class Job {
-	Pherenome::jobs job_id;
-
-public: 
-	virtual void Job_function(Ant job_worker) =0;
-	virtual float job_needness() =0;
-	float progress=0; //0-1
-
-
-};
 
 
 struct AntCord {
 	cords head;
 	cords body;
 	cords stinger;
-	
+
 };
+
+//Forward declaration, people hate on JS but you dont have to deal with tihs
+class Ant;
+
+class Job {
+	Pherenome::jobs job_id;
+
+public:
+	virtual void Job_function(Ant job_worker) = 0;
+	virtual float job_needness() = 0;
+	float progress = 0; //0-1
+
+
+};
+
 
 class Ant {
 	// This is fine since no one other class than Ant/routine accesses Job* (but the program does)
@@ -33,35 +35,49 @@ class Ant {
 	std::stack<Job> job_stack;
 
 
-	
+
 	AntCord POS;
 
 	//namespace life {
-	int health; 
+	int health;
 	int age;
-	bool at_home=true;
+	bool at_home = true;
 	cords homewhere;
 
 
 	int sleepiness;
-	int favorite_number;	
+	int favorite_number;
 	int steps_counter;
 
-	
+
 
 	//}
-	enum class direction {UP, DOWN, LEFT, RIGHT};
-	
-	void move(direction );
-	std::array<std::array<World::WorldPixel,5>,5> sense();
-	
+	enum class direction { UP, DOWN, LEFT, RIGHT };
+
+	void move(direction);
+	std::array<std::array<World::WorldPixel, 5>, 5> sense();
+
 	void findJob();
 
-public :
+public:
 	void tick(); // Run every game loop.
 
-	
+
 };
+
+//class Job {
+//	Pherenome::jobs job_id;
+//
+//public: 
+//	virtual void Job_function(Ant job_worker) =0;
+//	virtual float job_needness() =0;
+//	float progress=0; //0-1
+//
+//
+//};
+//
+//
+//
 
 class Queen : public Ant {
 

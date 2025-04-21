@@ -7,24 +7,26 @@
 #include "Pherenome.h"
 #include <iostream>
 #include "World.h"
+#include <vector>
+#include "Ant.h"
 
+//#include "A.h" // Add this include to resolve the Colony type
 
 class Simulation {
 
-PherenomeFactory pF;
-vector <Colony> colonies;
-// gui gui
+   PherenomeFactory pF{1}; // Use curly braces for initialization
+   std::vector<Colony> colonies;
 
-
-public: 
-World world;
-float timestep;
-void init();
-
-}
+public:
+   World world;
+   float timestep;
+   void init();
+   Simulation() {};
+};
 
 // globals that all will access from "s::w"
 Simulation s;
+
 
 
 

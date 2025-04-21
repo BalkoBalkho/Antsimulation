@@ -6,12 +6,8 @@ void Ant::tick() {
 
 }
 
-void Ant::move() {
-
-	this->POS.
-};
 
 
-World::WorldPixel Ant::sense();
-void Ant::findJob();
-void Ant::completeJob();
+//World::WorldPixel Ant::sense();
+//void Ant::findJob();
+//void Ant::completeJob();

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <unordered_map>
 #include <variant>
 //#include "World.h"
@@ -7,11 +9,11 @@ namespace Pherenome
 
 
 
-    enum class paths : uint8_t { food, danger, war, colony, };
-    enum class jobs : uint8_t { cleaning =13, patrol, food_finding, transport, };
+    enum class paths   { food, danger, war, colony, };
+    enum class jobs  { cleaning, patrol, food_finding, transport, };
     
     // This is like a union of these 2 types
-    using PherenomeType = std::variant<paths, Job>;
+    using PherenomeType = std::variant<paths, jobs>;
 };
 
 
@@ -35,7 +37,7 @@ class PherenomeList {
         PherenomeMarker* data;
         // Node* next;
         // Node* prev;
-        Ant* debug_source; //identify the source of this pherenome.
+        //Ant* debug_source; //identify the source of this pherenome.
         
     };
 
