@@ -5,6 +5,12 @@
 #include "Constants.h"
 #include "Food.h" 
 
+class Colony {
+
+    Colony
+};
+
+
 class Ant {
     private:
         float speed;  //Determines how fast the ant moves in the simulation.

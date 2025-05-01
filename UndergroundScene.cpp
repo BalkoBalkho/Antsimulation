@@ -2,7 +2,7 @@
 
 UndergroundScene::UndergroundScene(sf::RenderWindow* window) : window(window) {
     // Load font for text
-    font.loadFromFile("path/to/font.ttf");
+    font.loadFromFile("C:\Windows\Fonts\simsunb.ttf");
     infoText.setFont(font);
     infoText.setString("Welcome to the Underground World!");
     infoText.setCharacterSize(24);
