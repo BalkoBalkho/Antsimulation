@@ -7,7 +7,7 @@
 #include "Food.h"
 #include "Pheromone.h"
 #include "Constants.h"
-
+#include "World.h"
 using namespace std;
 
 enum Scene {
@@ -18,7 +18,7 @@ enum Scene {
 int main() {
 	sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
 	sf::RenderWindow window(desktopMode, "Ant Simulation", sf::Style::Default);
-	window.setFramerateLimit(60);
+	//window.setFramerateLimit(60);
 
 	vector<Ant> ants;
 	vector<Food> foodSources;
@@ -44,6 +44,8 @@ int main() {
 	// Create a view for controlling the visible area
 	sf::View view(sf::FloatRect(0, 0, desktopMode.width, desktopMode.height));
 	view.setCenter(nestPosition); // Start centered on the nest
+	World world;
+	world.j(); // Initialize the world with noise generation
 
 	Scene currentScene = SurfaceWorld;
 	while (window.isOpen()) {
@@ -147,7 +149,7 @@ int main() {
 
 		// Set the view before drawing
 		window.setView(view);
-
+		window.draw(world.vertices);
 		for (auto& p : pheromones) {
 			sf::CircleShape dot(3);
 			dot.setPosition(p.getPosition());

@@ -18,7 +18,7 @@ set(SFML_DIR "${CMAKE_SOURCE_DIR}/SFML-2.6.2-win")
 # Add all .cpp files in /src  
 file(GLOB SOURCES "${CMAKE_SOURCE_DIR}/*.cpp")  
 # Create executable  
-add_executable(AntSimulation ${SOURCES})  
+add_executable(AntSimulation ${SOURCES} "World.h")  
 
 # Link SFML (STATICALLY, NO DLL HELL)  
 target_include_directories(AntSimulation PRIVATE "${SFML_DIR}/include")  
