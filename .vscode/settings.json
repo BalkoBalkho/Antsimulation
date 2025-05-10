@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "vector": "cpp",
+        "memory": "cpp",
+        "updated main-asma": "cpp",
+        "map": "cpp",
+        "functional": "cpp",
+        "list": "cpp"
+    }
+}

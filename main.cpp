@@ -8,8 +8,16 @@
 #include "Pheromone.h"
 #include "Constants.h"
 #include "World.h"
+#include "hashgrid.hpp"
 using namespace std;
-
+#ifdef _WINDOWS
+extern "C"
+{	// the grid isnt culled or LOD-ed making this a fairly demanding graphical application
+	// so dedicated gpu is recommended
+	__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
 enum Scene {
 	SurfaceWorld,
 	UndergroundWorld

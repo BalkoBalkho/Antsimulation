@@ -2,50 +2,101 @@
 #include "FastNoiseLite.h"
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
+#include <array>
 class World {
 
 
 //std::array<std::array<
 
 //sf::VertexArray vertices(sf::Quads, GRID_WIDTH* GRID_HEIGHT * 4);
-const size_t GRID_WIDTH = 2048;
-const size_t GRID_HEIGHT = 2048;
-const size_t TILE_SIZE = 16; // Each tile is 32x32 pixels
+   // funny how this was 2048 x2048 and it lagged my igpu so bad.
+    // it was hard to diagnose since asmas unified architcure lets her run it in smooth
+    // you could either run this with your dgpu for smooth fps or reduce the grid size
+static constexpr size_t GRID_WIDTH{ 512 };
+static constexpr size_t GRID_HEIGHT = 512;
+static constexpr size_t TILE_SIZE = 16; // Each tile is 32x32 pixels
 
 
-sf::Color getColorFromNoise(float x, float y) {
+enum class material_type : uint8_t {
+    DEEP_WATER,
+    SHALLOW_WATER,
+    SAND,
+    GRASS,
+    MOUNTAIN,
+    SNOW,
+    DIRT_WALL,
+    STONE_WALL
+};
+struct Material {
+
+	sf::Color color;
+    bool isThisTraversable;
+    bool isthisMineAble; // or diggable
+	//bool isThisWater; certain ant species can swim (notably fire ants)
+
+};
+
+const std::map<material_type, Material> materialMap = {
+    { material_type::DEEP_WATER, { sf::Color(0, 0, 139), false, false } },
+    { material_type::SHALLOW_WATER, { sf::Color(65, 105, 225), true, false } },
+    { material_type::SAND, { sf::Color(210, 180, 140), true, true } },
+    { material_type::GRASS, { sf::Color(34, 139, 34), true, false } },
+    { material_type::MOUNTAIN, { sf::Color(139, 137, 137), false, true } },
+    { material_type::SNOW, { sf::Color(255, 250, 250), true, false } } },
+{ material_type::DIRT_WALL, { sf::Color(139, 69, 19), false, true } },
+{ material_type::STONE_WALL, { sf::Color(128, 128, 128), false, false } }
+    ;
+
+
+material_type getColorFromNoise(float x, float y) {
 	// Get noise value
 	float value = noise.GetNoise(x, y);
-	// Map the noise value to a color (example: grayscale)
 	
-    sf::Color color;
     if (value < -0.2f) {
-        color = sf::Color(0, 0, 139); // Deep water
+        return material_type::GRASS; // Deep water
     }
     else if (value < 0.0f) {
-        color = sf::Color(65, 105, 225); // Shallow water
+        return material_type::SAND; // Shallow water
     }
     else if (value < 0.2f) {
-        color = sf::Color(210, 180, 140); // Sand
+        return material_type::SAND; // Sand
     }
     else if (value < 0.5f) {
-        color = sf::Color(34, 139, 34); // Grass
+        return material_type::GRASS; // Grass
     }
     else if (value < 0.8f) {
-        color = sf::Color(139, 137, 137); // Mountain
+        return material_type::MOUNTAIN; // Mountain
     }
     else {
-        color = sf::Color(255, 250, 250); // Snow
+        return material_type::SHALLOW_WATER; // Snow
     }
-
-	return color;
 }
+
+
 
 public:
 sf::VertexArray vertices;
 FastNoiseLite noise;
+std::array<std::array<material_type, GRID_WIDTH>, GRID_HEIGHT> grid; // 2D array to store material types. Sisters query with their antanenae (and eyes)
 
+material_type getMaterialAt(int x, int y) const {
+    if (x < 0 || x >= GRID_WIDTH || y < 0 || y >= GRID_HEIGHT) {
+        return material_type::DEEP_WATER;
+    }
+    return grid[y][x];
+}
 
+bool isPassable(int x, int y) const {
+    material_type mat = getMaterialAt(x, y);
+	return materialMap.at(mat).isThisTraversable;
+	//return materialMap[mat].isThisTraversable;
+}
+
+bool isPassable(const sf::Vector2f& position) const {
+    int x = static_cast<int>(position.x) / TILE_SIZE;
+    int y = static_cast<int>(position.y) / TILE_SIZE;
+    return isPassable(x, y);
+}
 
 World() : vertices(sf::Quads, GRID_WIDTH * GRID_HEIGHT * 6) {
 	// Initialize the vertex array with the correct size and type
