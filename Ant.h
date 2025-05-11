@@ -11,7 +11,9 @@
 #include "hashgrid.hpp"
 
 
+class MindControl;
 class Ant {
+	friend MindControl;
 	PherenomeQueue pq;
 	struct eyes {
 		std::vector<std::shared_ptr<Ant>> n_ants;

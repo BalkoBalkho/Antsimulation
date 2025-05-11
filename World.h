@@ -42,10 +42,9 @@ const std::map<material_type, Material> materialMap = {
     { material_type::SAND, { sf::Color(210, 180, 140), true, true } },
     { material_type::GRASS, { sf::Color(34, 139, 34), true, false } },
     { material_type::MOUNTAIN, { sf::Color(139, 137, 137), false, true } },
-    { material_type::SNOW, { sf::Color(255, 250, 250), true, false } } },
-{ material_type::DIRT_WALL, { sf::Color(139, 69, 19), false, true } },
-{ material_type::STONE_WALL, { sf::Color(128, 128, 128), false, false } }
-    ;
+    { material_type::SNOW, { sf::Color(255, 250, 250), true, false } },
+    { material_type::DIRT_WALL, { sf::Color(139, 69, 19), false, true } },
+    { material_type::STONE_WALL, { sf::Color(128, 128, 128), false, false } } };
 
 
 material_type getColorFromNoise(float x, float y) {
@@ -74,10 +73,10 @@ material_type getColorFromNoise(float x, float y) {
 
 
 
+std::array<std::array<material_type, GRID_WIDTH>, GRID_HEIGHT> grid; // 2D array to store material types. Sisters query with their antanenae (and eyes)
 public:
 sf::VertexArray vertices;
 FastNoiseLite noise;
-std::array<std::array<material_type, GRID_WIDTH>, GRID_HEIGHT> grid; // 2D array to store material types. Sisters query with their antanenae (and eyes)
 
 material_type getMaterialAt(int x, int y) const {
     if (x < 0 || x >= GRID_WIDTH || y < 0 || y >= GRID_HEIGHT) {
@@ -104,7 +103,8 @@ World() : vertices(sf::Quads, GRID_WIDTH * GRID_HEIGHT * 6) {
     noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 }
 
-void j() {
+
+void generateWorld() {
     
 
 
@@ -112,7 +112,7 @@ void j() {
         for (int y = 0; y < GRID_HEIGHT; y++) {
             
             // Get noise value and color as before
-            sf::Color color = getColorFromNoise(x, y);
+            sf::Color color = materialMap.at(getColorFromNoise(x, y)).color;
             // Calculate base index (6 vertices per tile)
             int baseIndex = (x + y * GRID_WIDTH) * 6;
 

@@ -1,6 +1,4 @@
 #pragma once
-#include "Ant.h"
-#include "Food.h"
 #include <unordered_map>
 #include <vector>
 #include <utility>
@@ -14,11 +12,11 @@ class HashGrid {
 
 public:
     // Add an object to the grid (using a shared_ptr)
-    void add(const std::shared_ptr<T>& obj) {
+       void add(const std::shared_ptr<T>& obj) {
         auto pos = obj->position;
         int cellX = static_cast<int>(pos.x) / CELL_SIZE;
         int cellY = static_cast<int>(pos.y) / CELL_SIZE;
-        grid[{cellX, cellY}].push_back(obj);
+        grid[{cellX, cellY}].push_back(obj); // Convert shared_ptr to weak_ptr
     }
 
     // Get nearby objects (returns shared_ptrs)
@@ -42,7 +40,7 @@ public:
 
         return nearbyObjects;
     }
-    
+
 
 
     // Update the grid (remove expired entries)
@@ -91,4 +89,11 @@ public:
             }
         }
     }
+
+    void add(const std::list<T> list&) {
+        for (auto& obj : list) {
+            add((obj));
+        }
+    }
+
 };

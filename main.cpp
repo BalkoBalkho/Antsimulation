@@ -1,3 +1,4 @@
+#if true
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <vector>
@@ -9,6 +10,7 @@
 #include "Constants.h"
 #include "World.h"
 #include "hashgrid.hpp"
+#include "Simulation.h"
 using namespace std;
 #ifdef _WINDOWS
 extern "C"
@@ -18,34 +20,23 @@ extern "C"
 	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 #endif
-enum Scene {
-	SurfaceWorld,
-	UndergroundWorld
-};
 
 int main() {
+
+
 	sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
 	sf::RenderWindow window(desktopMode, "Ant Simulation", sf::Style::Default);
 	//window.setFramerateLimit(60);
 
-	vector<Ant> ants;
-	vector<Food> foodSources;
-	vector<Pheromone> pheromones;
-
 	// Nest setup
-	sf::Vector2f nestPosition(desktopMode.width / 2, desktopMode.height / 2);
-	sf::CircleShape nest(20);
-	nest.setFillColor(sf::Color::White);
-	nest.setPosition(nestPosition.x - 20, nestPosition.y - 20);
 
 	// Create ants
-	for (int i = 0; i < NUM_ANTS; ++i) {
-		ants.emplace_back(nestPosition);
-	}
+	
 
 	// Add food sources
-	foodSources.emplace_back(sf::Vector2f(600, 400));
-	foodSources.emplace_back(sf::Vector2f(200, 300));
+	siml.foodSources.emplace_back(sf::Vector2f(600, 400));
+	siml.foodSources.emplace_back(sf::Vector2f(200, 300));
+	siml.foodGrid.add(siml.foodSources);
 
 	sf::Clock clock;
 
@@ -53,9 +44,8 @@ int main() {
 	sf::View view(sf::FloatRect(0, 0, desktopMode.width, desktopMode.height));
 	view.setCenter(nestPosition); // Start centered on the nest
 	World world;
-	world.j(); // Initialize the world with noise generation
+	world.generateWorld(); // Initialize the world with noise generation
 
-	Scene currentScene = SurfaceWorld;
 	while (window.isOpen()) {
 		float dt = clock.restart().asSeconds();
 		sf::Event event;
@@ -184,3 +174,4 @@ int main() {
 
 	return 0;
 }
+#endif
