@@ -95,7 +95,23 @@ const std::vector<Ant::Job> Ant::available_jobs = {
 };
 
 
-
+std::vector<Ant::Job> Queen::queen_jobs = {
+		Job("1. Roaming around for food.", pherotype::food_finding,
+			[](Ant& t,float dt, eyes info) {
+				t.moveRandomly(dt);
+				if (info.n_foods.size() > 0) { //food found
+					auto ps = info.n_foods.at(0).get()->position;
+					t.spray(pherotype::food, 1.0f, t.position);
+					t.jobst.pop();
+					t.jobst.push(Ant::available_jobs.at(2)); //food spotted
+					return;
+				}
+			},
+			[](Ant& t) -> float {
+				return 0.0f + (float)t.hunger / 10.0f;
+			}
+		),
+};
 
 
 

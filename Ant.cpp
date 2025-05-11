@@ -3,9 +3,9 @@
 #include <cstdlib>
 #include <algorithm>
 #include "Jobs.cpp"
-Ant::Ant(sf::Vector2f pos)
+Ant::Ant(sf::Vector2f pos, Colony* colony)
     : position(pos), speed(ANT_SPEED), hasFood(false),
-      legAngleOffset(0), animationTimer(0), bodyRotation(0)
+      legAngleOffset(0), animationTimer(0), bodyRotation(0), mouth(this)
 {
 
     float angle = static_cast<float>(std::rand() % 360) * 3.14159f / 180.0f;
@@ -43,10 +43,10 @@ Ant::Ant(sf::Vector2f pos)
 }
 
 
- void Ant::spray(pherotype p, float strength, sf::Vector2f pos,bool is_request=false) {
+ void Ant::spray(pherotype p, float strength, sf::Vector2f pos,bool is_request) {
 	colony->pheromones.emplace_back(pos, p, strength,is_request);
     
-	colony->pheromoneGrid.add(std::make_shared<Pheromone>(colony->pheromones.back()));
+	colony->pheromoneGrid.add(colony->pheromones.back());
 
 }
 
@@ -111,22 +111,22 @@ void Ant::walk_straight(sf::Vector2f dirToTarget,float dt) {
 }
 void Ant::follow_pherenome_trail(pherotype pl, float dt, bool weakest = false) {
 	// Find the strongest pheromone of the specified type
-	Pheromone* extreme = nullptr;
+	Pheromone* extreme =nullptr;
     float maxStrength = 0.0f;
     float minStrenght = 999999999.9f;
 
 	for (auto& p : colony->pheromones)
 	{
-        if (pq.already_visited(&p)) continue;
-		if (!descending && p.getType() == pl && p.strength > maxStrength )
+        if (pq.already_visited(p.get())) continue;
+		if (!weakest && p->getType() == pl && p->strength > maxStrength )
 		{
-			maxStrength = p.strength;
-			extreme = &p;
+			maxStrength = p->strength;
+			extreme = p.get();
 		}
-		if (descending && p.getType() == pl && p.strength < minStrenght)
+		if (weakest && p->getType() == pl && p->strength < minStrenght)
 		{
-			minStrenght = p.strength;
-            extreme = &p;
+			minStrenght = p->strength;
+            extreme = p.get();
 			
 		}
 
@@ -142,7 +142,15 @@ void Ant::follow_pherenome_trail(pherotype pl, float dt, bool weakest = false) {
 
 }
 
+const std::vector<Ant::Job>& Ant::get_all_jobs()
+{
+    return available_jobs;
+}
 
+const std::vector<Ant::Job>& Queen::get_all_jobs()
+{
+    return queen_jobs;
+}
 
 
 
@@ -198,53 +206,53 @@ void Ant::update(float dt) {
 
     
 }
-
-void Ant::update(float dt, std::vector<Pheromone> &pheromones, const std::vector<Food> &foods, const sf::Vector2f &nestPos)
-{
-    if (std::rand() % 100 < 5)
-    {
-        float angle = static_cast<float>(std::rand() % 60 - 30) * 3.14159f / 180.0f;
-        rotate(angle);
-    }
-
-    // Follow pheromone
-    Pheromone *strongest = nullptr;
-    float maxStrength = 0.0f;
-    for (auto &p : pheromones)
-    {
-        float dist = hypot(p.getPosition().x - position.x, p.getPosition().y - position.y);
-        if (dist < 40.0f && p.hasFood != hasFood && p.strength > maxStrength)
-        {
-            maxStrength = p.strength;
-            strongest = &p;
-        }
-    }
-
-    if (strongest && maxStrength > 50.0f) { // Threshold for pheromone strength
-        sf::Vector2f dirToPheromone = strongest->getPosition() - position;
-        float len = sqrt(dirToPheromone.x * dirToPheromone.x + dirToPheromone.y * dirToPheromone.y);
-        if (len > 0)
-            direction = dirToPheromone / len;
-    } else {
-        // If no strong pheromone is found, move randomly
-        if (std::rand() % 100 < 10) { // 10% chance to change direction randomly
-            float angle = static_cast<float>(std::rand() % 360) * 3.14159f / 180.0f;
-            direction = sf::Vector2f(std::cos(angle), std::sin(angle));
-        }
-    }
-
-    // Move
-    position += direction * speed * dt;
-
-    // Leg animation
-    animationTimer += dt;
-    legAngleOffset = sin(animationTimer * 10) * 20;
-
-    // Drop pheromone
-    pheromones.emplace_back(position, 255.0f, hasFood);
-
-    updateBodyParts();
-}
+//
+//void Ant::update(float dt, std::vector<Pheromone> &pheromones, const std::vector<Food> &foods, const sf::Vector2f &nestPos)
+//{
+//    if (std::rand() % 100 < 5)
+//    {
+//        float angle = static_cast<float>(std::rand() % 60 - 30) * 3.14159f / 180.0f;
+//        rotate(angle);
+//    }
+//
+//    // Follow pheromone
+//    Pheromone *strongest = nullptr;
+//    float maxStrength = 0.0f;
+//    for (auto &p : pheromones)
+//    {
+//        float dist = hypot(p->getPosition().x - position.x, p->getPosition().y - position.y);
+//        if (dist < 40.0f && p->hasFood != hasFood && p->strength > maxStrength)
+//        {
+//            maxStrength = p->strength;
+//            strongest = &p;
+//        }
+//    }
+//
+//    if (strongest && maxStrength > 50.0f) { // Threshold for pheromone strength
+//        sf::Vector2f dirToPheromone = strongest->getPosition() - position;
+//        float len = sqrt(dirToPheromone.x * dirToPheromone.x + dirToPheromone.y * dirToPheromone.y);
+//        if (len > 0)
+//            direction = dirToPheromone / len;
+//    } else {
+//        // If no strong pheromone is found, move randomly
+//        if (std::rand() % 100 < 10) { // 10% chance to change direction randomly
+//            float angle = static_cast<float>(std::rand() % 360) * 3.14159f / 180.0f;
+//            direction = sf::Vector2f(std::cos(angle), std::sin(angle));
+//        }
+//    }
+//
+//    // Move
+//    position += direction * speed * dt;
+//
+//    // Leg animation
+//    animationTimer += dt;
+//    legAngleOffset = sin(animationTimer * 10) * 20;
+//
+//    // Drop pheromone
+//    pheromones.emplace_back(position, 255.0f, hasFood);
+//
+//    updateBodyParts();
+//}
 
 void Ant::updateBodyParts()
 {
@@ -288,7 +296,7 @@ void Ant::rotate(float angle)
     direction /= len;
 }
 
-Queen::Queen(sf::Vector2f pos) :  Ant(pos) {
+Queen::Queen(sf::Vector2f pos, Colony* colony) : Ant(pos,colony) {
 
 	// Initialize queen-specific properties
 	speed = 0.0f; // Queen doesn't move like worker ants
@@ -299,3 +307,31 @@ Queen::Queen(sf::Vector2f pos) :  Ant(pos) {
 	hp = 100; // Queen has more HP
 	body.setFillColor(sf::Color::Red); // Different color for the queen
 }
+
+Colony::Colony(int number_of_ants, sf::Color color, sf::Vector2f pos  )
+{
+    // Initialize the colony with a given number of ants and color
+    for (int i = 0; i < number_of_ants; ++i) {
+        ants.emplace_back(std::make_shared<Ant>(sf::Vector2f(0, 0), this));
+        ants.back()->colony = this;
+        ants.back()->body.setFillColor(color);
+        ants.back()->head.setFillColor(color);
+        ants.back()->foodIndicator.setFillColor(color);
+    }
+	auto queen = std::make_shared<Queen>(pos,this);
+    queens.push_back(queen);
+}
+
+void Colony::update(float dt) {
+    for (auto& p : pheromones)
+            p->strength *= PHEROMONE_DECAY;
+    pheromones.erase(remove_if(pheromones.begin(), pheromones.end(),
+        [](const auto& p)
+            { return p->strength < 0.1f; }),
+                pheromones.end());
+    
+    for (auto& q : queens) q->update(dt);
+    for (auto& a : ants) a->update(dt);
+
+}
+

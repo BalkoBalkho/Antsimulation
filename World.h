@@ -101,13 +101,15 @@ World() : vertices(sf::Quads, GRID_WIDTH * GRID_HEIGHT * 6) {
 	// Initialize the vertex array with the correct size and type
     vertices.setPrimitiveType(sf::Triangles);
     noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+	generateWorld();
 }
 
-
+private:
 void generateWorld() {
     
 
-
+#pragma warning( push )
+#pragma warning( disable : 4244)
     for (int x = 0; x < GRID_WIDTH; x++) {
         for (int y = 0; y < GRID_HEIGHT; y++) {
             
@@ -139,7 +141,7 @@ void generateWorld() {
             }
         }
     }
-
+#pragma warning( pop ) 
 
 }
 };

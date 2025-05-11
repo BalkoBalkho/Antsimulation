@@ -11,9 +11,14 @@
 #include "hashgrid.hpp"
 
 
-class MindControl;
+//class MindControl;
+//class Colony;
+
 class Ant {
-	friend MindControl;
+    private:
+	friend class MindControl;
+	friend class Colony;
+	friend class Queen;
 	PherenomeQueue pq;
 	struct eyes {
 		std::vector<std::shared_ptr<Ant>> n_ants;
@@ -21,8 +26,7 @@ class Ant {
 		std::vector<std::shared_ptr<Pheromone>> n_pheromones;
 
 	};
-    protected:
-		class Mouth {
+	class Mouth {
 			enum class MouthState {
 				baby,
 				food,
@@ -30,12 +34,13 @@ class Ant {
 				dirt
 			};
 			uint32_t foodamount = 0;
+			Ant* owner;
 		public:
 			//void eat(Food& food);
 			float pickUpFood(Food& food);
 			bool try_eat();
 			void dropFood(sf::Vector2f pos);
-
+			Mouth(Ant* owner) : owner(owner) {};
 			//void pickUpDirt();
 			//void pickUpPupae();
 			//void dropPupae();
@@ -48,10 +53,10 @@ class Ant {
 		lambda do_The_work;
 		get_percentage neediness_of_this_job;
 	public:
-		std::string name; // Name of the job for debugging or identification
-		pherotype type;
-		float job_progress; // How far along the ant is in completing the job,
-		int patience; // How long the ant will wait before abandoning the job
+		std::string name =""; // Name of the job for debugging or identification
+		pherotype type = pherotype::colony;
+		float job_progress = 0.0f; // How far along the ant is in completing the job,
+		int patience =100; // How long the ant will wait before abandoning the job
 
 		void execute(Ant& self, float dt);
 		float getNeediness(Ant& self, float dt);
@@ -111,8 +116,8 @@ class Ant {
         sf::Vector2f direction; //Tracks the direction the ant is moving.
         bool hasFood;  //Tracks whether the ant is carrying food.
         bool isSelected;  //Tracks whether the ant is selected by the user for interaction or tracking.
-
-        Ant(sf::Vector2f pos);  //declaration of the constructor
+		Ant() = default;
+		Ant(sf::Vector2f pos, Colony* colony);  //declaration of the constructor
 
 		void spray(pherotype p, float strength, sf::Vector2f pos,bool is_request=false);
 
@@ -123,40 +128,42 @@ class Ant {
 		void walk_straight(sf::Vector2f dirToTarget, float dt);
 
 		void follow_pherenome_trail(pherotype pl, float dt, bool weakest);
+		const std::vector<Ant::Job>& get_all_jobs();
 
 
-
-        void update(float dt, std::vector<Pheromone>& pheromones, const std::vector<Food>& foods, const sf::Vector2f& nestPos);//handles ants movement, interactions with food, pheromones, and the nest.
+        //void update(float dt, std::vector<Pheromone>& pheromones, const std::vector<Food>& foods, const sf::Vector2f& nestPos);//handles ants movement, interactions with food, pheromones, and the nest.
         void update(float dt);
         void draw(sf::RenderWindow& window);   //renders ant on the screen
         void rotate(float angle);    //changes ants direction by a specified angle
 };
 class Queen : public Ant{
 protected:
-
+	static std::vector<Job> queen_jobs;
 public:
     using Ant::Ant;
-    Queen(sf::Vector2f pos);
+	const std::vector<Ant::Job>& get_all_jobs();
+	Queen(sf::Vector2f pos, Colony* colony);
+	Queen() = default;
 };
 
-class Pupae : public Ant {
-protected:
+// class Pupae : public Ant {
+// protected:
 
-public:
-	using Ant::Ant;
-	void draw(sf::RenderWindow& window) ;
-	Pupae();
-};
+// public:
+// 	using Ant::Ant;
+// 	void draw(sf::RenderWindow& window) ;
+// 	Pupae();
+// };
 
 class Colony {
 	
+	public:
 	sf::Color colony_color; // The color of the colony, used for rendering and identification.
-	std::vector <Ant> ants; // A vector to store all the ants in the colony.
-    std::vector <Queen> queens; // A vector to store all the queens in the colony.
-public: // only ants should use this, not the program
-	std::list<Pheromone> pheromones; // A vector to store pheromones in the colony.
+	std::vector <std::shared_ptr<Ant>> ants; // A vector to store all the ants in the colony.
+    std::vector <std::shared_ptr<Queen>> queens; // A vector to store all the queens in the colony.
+	std::list<std::shared_ptr<Pheromone>> pheromones; // A list of pointers to store pheromones in the colony.
 	HashGrid<Pheromone> pheromoneGrid; // A hash grid to manage (local) pheromones in the colony's area.
 	void update(float dt);
-	Colony(int number_of_ants = NUM_ANTS, sf::Color color = sf::Color::White); // Constructor to initialize the colony with a specified number of ants and color.
+	Colony(int number_of_ants = NUM_ANTS, sf::Color color = sf::Color::Red, sf::Vector2f pos = {810.0f,560.0f} ); // Constructor to initialize the colony with a specified number of ants and color.
 };
 

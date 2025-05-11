@@ -4,13 +4,18 @@
 #include <utility>
 #include <memory>
 #include <algorithm>
-
+#include <map>
 template <typename T>
 class HashGrid {
     static const int CELL_SIZE = 10;
-    std::unordered_map<std::pair<int, int>, std::vector<std::weak_ptr<T>>> grid;
+    std::map<std::pair<int, int>, std::vector<std::weak_ptr<T>>> grid;
 
 public:
+    HashGrid() {
+
+    };
+
+    // Add an object to the grid (using a shared_ptr
     // Add an object to the grid (using a shared_ptr)
        void add(const std::shared_ptr<T>& obj) {
         auto pos = obj->position;
@@ -45,7 +50,10 @@ public:
 
     // Update the grid (remove expired entries)
     void update() {
-        for (auto& [cell, objects] : grid) {
+        for (auto it = grid.begin(); it != grid.end(); ) {
+            auto& cell = it->first;
+            auto& objects = it->second;
+
             objects.erase(
                 std::remove_if(objects.begin(), objects.end(),
                     [](const std::weak_ptr<T>& wp) { return wp.expired(); }),
@@ -53,6 +61,7 @@ public:
             );
 
             if (objects.empty()) {
+                it = grid.erase(it); // Correctly erase the current element and update the iterator
                 continue;
             }
 
@@ -85,12 +94,15 @@ public:
             }
 
             if (objects.empty()) {
-                grid.erase(cell);
+                it = grid.erase(it); // Correctly erase the current element and update the iterator
+            }
+            else {
+                ++it;
             }
         }
     }
 
-    void add(const std::list<T> list&) {
+    void add(const std::list<std::shared_ptr<T>>& list) {
         for (auto& obj : list) {
             add((obj));
         }
