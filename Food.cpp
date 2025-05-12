@@ -1,3 +1,4 @@
+#pragma once
 #include "Food.h"
 #include "Constants.h"
 #include <SFML/System.hpp>

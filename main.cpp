@@ -1,178 +1,275 @@
-#include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
+#include <SFML/Audio.hpp>
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
 #include "Ant.h"
 #include "Food.h"
 #include "Pheromone.h"
 #include "Constants.h"
 #include "World.h"
+#include "Simulation.h"
+
 using namespace std;
 
-enum Scene {
-	SurfaceWorld,
-	UndergroundWorld
-};
+sf::Vector2f getRandomPosition(const sf::FloatRect& bounds)
+{
+    float x = bounds.left + static_cast<float>(std::rand()) / RAND_MAX * bounds.width;
+    float y = bounds.top + static_cast<float>(std::rand()) / RAND_MAX * bounds.height;
+    return sf::Vector2f(x, y);
+}
 
-int main() {
-	sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
-	sf::RenderWindow window(desktopMode, "Ant Simulation", sf::Style::Default);
-	//window.setFramerateLimit(60);
+int main()
+{
+    sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
+    sf::RenderWindow window(desktopMode, "Ant Simulation", sf::Style::Default);
+    window.setFramerateLimit(60);
 
-	vector<Ant> ants;
-	vector<Food> foodSources;
-	vector<Pheromone> pheromones;
+    
+    siml.foodSources.push_back(make_shared<Food>((sf::Vector2f(600, 400)))); // Example food
+    siml.foodSources.push_back(make_shared<Food>((sf::Vector2f(800, 500))));
+    
 
-	// Nest setup
-	sf::Vector2f nestPosition(desktopMode.width / 2, desktopMode.height / 2);
-	sf::CircleShape nest(20);
-	nest.setFillColor(sf::Color::White);
-	nest.setPosition(nestPosition.x - 20, nestPosition.y - 20);
 
-	// Create ants
-	for (int i = 0; i < NUM_ANTS; ++i) {
-		ants.emplace_back(nestPosition);
-	}
+    //vector<sf::RectangleShape> obstacles;
+    sf::FloatRect worldBounds(0, 0, desktopMode.width * 4, desktopMode.height * 4);
 
-	// Add food sources
-	foodSources.emplace_back(sf::Vector2f(600, 400));
-	foodSources.emplace_back(sf::Vector2f(200, 300));
+    sf::View miniMapView(sf::FloatRect(0, 0, worldBounds.width, worldBounds.height));
+    miniMapView.setViewport(sf::FloatRect(0.8f, 0.8f, 0.2f, 0.2f)); // Bottom-right corner
 
-	sf::Clock clock;
+    float zoomLevel = 1.0f;
+    const float zoomSpeed = 0.1f;
+    const float minZoom = 0.5f;
+    const float maxZoom = 2.5f;
 
-	// Create a view for controlling the visible area
-	sf::View view(sf::FloatRect(0, 0, desktopMode.width, desktopMode.height));
-	view.setCenter(nestPosition); // Start centered on the nest
-	World world;
-	world.j(); // Initialize the world with noise generation
+    // draw mini map
+    window.setView(miniMapView);
 
-	Scene currentScene = SurfaceWorld;
-	while (window.isOpen()) {
-		float dt = clock.restart().asSeconds();
-		sf::Event event;
-		while (window.pollEvent(event)) {
-			if (event.type == sf::Event::Closed)
-				window.close();
-			if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-				sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-				sf::Vector2f worldPos = window.mapPixelToCoords(mousePos, view); // Convert to world coordinates
+    // Draw ants
+    for (auto colony : siml.colonies)
+    for (auto& ant : colony->ants)
+    {
+        sf::CircleShape antDot(2); // Smaller dots for mini-map
+        antDot.setFillColor(sf::Color::Red);
+        antDot.setPosition(ant->position);
+        window.draw(antDot);
+    }
 
-				// Check if the click is on a pheromone
-				for (auto& p : pheromones) {
-					float dist = hypot(p.getPosition().x - worldPos.x, p.getPosition().y - worldPos.y);
-					if (dist < 5.0f) { // Assuming pheromones are small dots
-						currentScene = UndergroundWorld; // Transition to underground world
-						break;
-					}
-					if (currentScene == SurfaceWorld) {
-						// Surface world logic (existing code)
-						// Update pheromones, ants, and draw the surface world
-					}
-					else if (currentScene == UndergroundWorld) {
-						// Underground world logic
-						window.clear(sf::Color(20, 20, 50)); // Darker background for underground
+    // Draw food
+    for (auto& food : siml.foodSources)
+    {
+        sf::CircleShape foodDot(3);
+        foodDot.setFillColor(sf::Color::Green);
+        foodDot.setPosition(food->position);
+        window.draw(foodDot);
+    }
 
-						// Example underground scene: glowing pheromone trails
-						for (auto& p : pheromones) {
-							sf::CircleShape glowingPheromone(10);
-							glowingPheromone.setPosition(p.getPosition());
-							glowingPheromone.setFillColor(sf::Color(0, 255, 255, static_cast<sf::Uint8>(p.strength)));
-							window.draw(glowingPheromone);
-						}
+    // Draw obstacles
+    // const int numObstacles = 10; // Number of obstacles
+    // for (int i = 0; i < numObstacles; ++i)
+    // {
+    //     sf::RectangleShape obstacle(sf::Vector2f(100, 50)); // Example size
+    //     obstacle.setFillColor(sf::Color(100, 100, 100));    // Gray color
+    //     obstacle.setPosition(getRandomPosition(worldBounds));
+    //     obstacles.push_back(obstacle);
+    // }
 
-						// Add a return button or exit logic
-						sf::Text returnText;
-						sf::Font font;
-						font.loadFromFile("C:\Windows\Fonts\simsunb.ttf"); // Ensure you have a font file
-						returnText.setFont(font);
-						returnText.setString("Press Esc to Return");
-						returnText.setCharacterSize(24);
-						returnText.setFillColor(sf::Color::White);
-						returnText.setPosition(10, 10);
-						window.draw(returnText);
+    // Nest setup
+    sf::Vector2f nestPosition(desktopMode.width / 2, desktopMode.height / 2);
+    std::vector<sf::CircleShape> nestLayers;
+    const int nestLayersCount = 5;
+    const float baseRadius = 40.0f;
 
-						// Handle return to surface world
-						if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
-							currentScene = SurfaceWorld;
-						}
+    for (int i = 0; i < nestLayersCount; ++i)
+    {
+        sf::CircleShape layer(baseRadius - i * 6);              // Decreasing radius
+        sf::Uint8 alpha = static_cast<sf::Uint8>(200 - i * 30); // More transparent outward
+        layer.setFillColor(sf::Color(139, 69, 19, alpha));      // Brownish color with transparency
+        layer.setOrigin(layer.getRadius(), layer.getRadius());
+        layer.setPosition(nestPosition);
+        nestLayers.push_back(layer);
+    }
+    
 
-						window.display();
-						continue; // Skip the rest of the surface world logic
-					}
-				}
-			}
-		}
+    // Seed the random number generator
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
 
-		// Handle view movement with keyboard (WASD or arrow keys)
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-			view.move(0, -200 * dt); // Move up
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-			view.move(0, 200 * dt); // Move down
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-			view.move(-200 * dt, 0); // Move left
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-			view.move(200 * dt, 0); // Move right
-		}
+    // Place food at random positions
+    const int numFoodPieces = 50; // Number of food pieces to place
+    for (int i = 0; i < numFoodPieces; ++i)
+    {
+        sf::Vector2f randomPosition = getRandomPosition(worldBounds);
+        siml.foodSources.push_back(make_shared<Food>(randomPosition)); // Add food to the world
 
-		// Update pheromones
-		for (auto& p : pheromones) p.strength *= PHEROMONE_DECAY;
-		pheromones.erase(remove_if(pheromones.begin(), pheromones.end(),
-			[](const Pheromone& p) { return p.strength < 0.1f; }), pheromones.end());
+    }
 
-		// Update ants
-		for (auto& ant : ants) {
-			ant.update(dt, pheromones, foodSources, nestPosition);
+    auto colony1 = std::make_shared<Colony>(NUM_ANTS, sf::Color(139, 69, 19), nestPosition );
+    colony1->ants.resize(NUM_ANTS);
+    siml.colonies.push_back(colony1);
 
-			if (!ant.hasFood) {
-				for (auto& food : foodSources) {
-					if (hypot(food.position.x - ant.position.x,
-						food.position.y - ant.position.y) < 15.0f && food.quantity > 0) {
-						ant.hasFood = true;
-						food.quantity -= 1.0f;
-					}
-				}
-			}
-			else {
-				if (hypot(nestPosition.x - ant.position.x,
-					nestPosition.y - ant.position.y) < 30.0f) {
-					ant.hasFood = false;
-				}
-			}
-		}
 
-		// Draw everything
-		window.clear(sf::Color(50, 50, 50));
 
-		// Set the view before drawing
-		window.setView(view);
-		window.draw(world.vertices);
-		for (auto& p : pheromones) {
-			sf::CircleShape dot(3);
-			dot.setPosition(p.getPosition());
-			dot.setFillColor(p.hasFood ?
-				sf::Color(0, 255, 0, static_cast<sf::Uint8>(p.strength)) :
-				sf::Color(255, 255, 255, static_cast<sf::Uint8>(p.strength)));
-			window.draw(dot);
-		}
 
-		for (auto& food : foodSources) {
-			sf::CircleShape foodShape(10);
-			foodShape.setFillColor(sf::Color::Yellow);
-			foodShape.setPosition(food.position);
-			window.draw(foodShape);
-		}
+    // // Create ants
+    // for (int i = 0; i < NUM_ANTS; ++i)
+    // {
+    //     // ants.emplace_back(nestPosition, sf::Color(139, 69, 19)); // Brown color
+    // }
 
-		for (auto& ant : ants) {
-			ant.draw(window);
-		}
+    // Create another species of ants
+    sf::Vector2f otherNestPosition(desktopMode.width / 2, desktopMode.height * 9 / 4); // Moved lower
+    std::vector<sf::CircleShape> otherNestLayers;
+    for (int i = 0; i < nestLayersCount; ++i)
+    {
+        sf::CircleShape layer(baseRadius - i * 6);
+        sf::Uint8 alpha = static_cast<sf::Uint8>(200 - i * 30);
+        layer.setFillColor(sf::Color(0, 0, 0, alpha)); // Dodger blue with transparency
+        layer.setOrigin(layer.getRadius(), layer.getRadius());
+        layer.setPosition(otherNestPosition);
+        otherNestLayers.push_back(layer);
+    }
 
-		window.draw(nest);
-		window.display();
-	}
+    auto colony2 = std::make_shared<Colony>(NUM_ANTS, sf::Color::Black, otherNestPosition);
+    //colony2->ants.resize(NUM_ANTS);
+    siml.colonies.push_back(colony2);
+    // constexpr int  NUM_OTHER_ANTS = 30;
+    // for (int i = 0; i < NUM_OTHER_ANTS; ++i)
+    // {
+    //     otherSpeciesAnts.emplace_back(otherNestPosition, sf::Color::Black); // Black color
+    // }
 
-	return 0;
+    // Load food with textures
+    siml.foodSources.emplace_back(make_shared<Food>(sf::Vector2f(600, 400))); // Example food
+    siml.foodSources.emplace_back(make_shared<Food>(sf::Vector2f(800, 500)));
+    sf::Clock clock;
+
+    // Create a view for controlling the visible area
+    sf::View view(sf::FloatRect(0, 0, desktopMode.width, desktopMode.height));
+    view.setCenter(nestPosition);
+
+    World world;
+    //world.generateWorld(); // Initialize the world with noise generation
+
+    sf::SoundBuffer eatBuffer;
+    siml.eatSound;
+    
+    if (!eatBuffer.loadFromFile("/Users/asmabatool/Downloads/stml/src/eat_crunch.ogg"))
+    {
+        std::cerr << "Failed to load eating sound!" << std::endl;
+    }
+    siml.eatSound.setBuffer(eatBuffer);
+    siml.eatSound.setVolume(100);
+
+    while (window.isOpen())
+    {
+        float dt = clock.restart().asSeconds();
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+
+            // --- Keyboard zoom controls ---
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Add) || sf::Keyboard::isKeyPressed(sf::Keyboard::Equal))
+            {
+                zoomLevel = std::max(minZoom, zoomLevel - zoomSpeed);
+                view.setSize(desktopMode.width * zoomLevel, desktopMode.height * zoomLevel);
+            }
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Subtract) || sf::Keyboard::isKeyPressed(sf::Keyboard::Dash))
+            {
+                zoomLevel = std::min(maxZoom, zoomLevel + zoomSpeed);
+                view.setSize(desktopMode.width * zoomLevel, desktopMode.height * zoomLevel);
+            }
+        }
+
+        // Update other species of ants
+        for (auto& colony : siml.colonies)
+        {
+            colony->update(dt);
+        }
+
+        window.setView(view); // After the pollEvent loop
+
+        // Handle view movement with keyboard (WASD or arrow keys)
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+        {
+            view.move(0, -1000 * dt);
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+        {
+            view.move(0, 1000 * dt);
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+        {
+            view.move(-1000 * dt, 0);
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+        {
+            view.move(1000 * dt, 0);
+        }
+
+        // Update pheromones
+        
+         siml.soundplayed = false;
+        
+        // Draw everything
+        window.clear(sf::Color(50, 50, 50));
+        window.setView(view);
+
+        // Draw the world terrain
+        window.draw(world.vertices);
+
+        // Draw animated pheromones
+        float time = clock.getElapsedTime().asSeconds(); // Use elapsed time for animation
+        for (auto& c : siml.colonies)
+        for (auto& p : c->pheromones)
+        {
+            float pulse = 1.0f + 0.2f * std::sin(time * 3.0f); // Pulsing effect
+            float size = std::max(1.0f, p->strength / 50.0f) * pulse;
+
+            sf::CircleShape dot(size);
+            dot.setPosition(p->getPosition() - sf::Vector2f(size / 2, size / 2)); // Center the dot
+            sf::Uint8 alpha = static_cast<sf::Uint8>(std::min(255.0f, p->strength));
+            dot.setFillColor(p->hasFood ? sf::Color(0, 255, 0, alpha) : sf::Color(255, 255, 255, alpha));
+            window.draw(dot);
+        }
+
+        for (auto& food : siml.foodSources)
+        {
+            sf::CircleShape foodShape(10);
+            foodShape.setFillColor(sf::Color::Yellow);
+            foodShape.setPosition(food->position);
+            window.draw(foodShape);
+        }
+
+        // Draw ants
+        for (auto& c : siml.colonies)
+        for (auto& ant : c->ants)
+        {
+            ant->draw(window);
+        }
+
+        // Draw nests
+        for (auto& layer : nestLayers)
+        {
+            window.draw(layer);
+        }
+        for (auto& layer : otherNestLayers)
+        {
+            window.draw(layer);
+        }
+        // for (auto& obstacle : obstacles)
+        // {
+        //     window.draw(obstacle);
+        // }
+
+        window.display();
+        window.setView(view);
+    }
+
+    return 0;
 }

@@ -1,0 +1,142 @@
+#include <iostream>
+#include <memory>
+#include <vector>
+#include <unordered_map>
+#include <utility>
+#include <algorithm>
+
+// Simple struct for testing
+struct TestEntity {
+    float x, y;
+    TestEntity(float _x, float _y) : x(_x), y(_y) {}
+};
+
+// HashGrid implementation (simplified)
+template <typename T>
+class HashGrid {
+    static const int CELL_SIZE = 10;
+    std::unordered_map<std::pair<int, int>, std::vector<std::weak_ptr<T>>> grid;
+
+public:
+    void add(const std::shared_ptr<T>& obj) {
+        int cellX = static_cast<int>(obj->x) / CELL_SIZE;
+        int cellY = static_cast<int>(obj->y) / CELL_SIZE;
+        grid[{cellX, cellY}].push_back(obj);
+    }
+
+    std::vector<std::shared_ptr<T>> getNearby(float x, float y) {
+        int cellX = static_cast<int>(x) / CELL_SIZE;
+        int cellY = static_cast<int>(y) / CELL_SIZE;
+        std::vector<std::shared_ptr<T>> nearbyObjects;
+
+        for (int dx = -1; dx <= 1; ++dx) {
+            for (int dy = -1; dy <= 1; ++dy) {
+                auto it = grid.find({cellX + dx, cellY + dy});
+                if (it != grid.end()) {
+                    for (const auto& wp : it->second) {
+                        if (auto sp = wp.lock()) {
+                            nearbyObjects.push_back(sp);
+                        }
+                    }
+                }
+            }
+        }
+
+        return nearbyObjects;
+    }
+
+    void update() {
+        for (auto& [cell, objects] : grid) {
+            objects.erase(
+                std::remove_if(objects.begin(), objects.end(),
+                               [](const std::weak_ptr<T>& wp) { return wp.expired(); }),
+                objects.end()
+            );
+        }
+    }
+};
+
+// Helper to print results
+template <typename T>
+void printNearby(const std::vector<std::shared_ptr<T>>& vec, const char* name) {
+    std::cout << name << ": ";
+    for (const auto& obj : vec) {
+        std::cout << "(" << obj->x << ", " << obj->y << ") ";
+    }
+    std::cout << "\n";
+}
+
+int main() {
+    std::cout << "=== HashGrid Test ===\n";
+
+    // Create some entities
+    auto e1 = std::make_shared<TestEntity>(5.0f, 5.0f);
+    auto e2 = std::make_shared<TestEntity>(15.0f, 15.0f);
+    auto e3 = std::make_shared<TestEntity>(8.0f, 8.0f);
+
+    // Create the grid
+    HashGrid<TestEntity> grid;
+
+    // Add entities to the grid
+    grid.add(e1);
+    grid.add(e2);
+    grid.add(e3);
+
+    // Get nearby at (10, 10)
+    std::cout << "Before move:\n";
+    auto nearby = grid.getNearby(10.0f, 10.0f);
+    printNearby(nearby, "Nearby Entities");
+
+    // Check that we got e1 and e3
+    if (nearby.size() == 2 &&
+        nearby[0]->x == 5.0f && nearby[0]->y == 5.0f &&
+        nearby[1]->x == 8.0f && nearby[1]->y == 8.0f) {
+        std::cout << "✅ Test 1 Passed\n";
+    } else {
+        std::cerr << "❌ Test 1 Failed\n";
+    }
+
+    // Simulate movement (e1 moves)
+    e1->x += 6.0f;
+    e1->y += 6.0f;
+
+    // Update the grid
+    grid.update();
+
+    // Get nearby again
+    nearby = grid.getNearby(10.0f, 10.0f);
+    std::cout << "After move:\n";
+    printNearby(nearby, "Nearby Entities");
+
+    // Now e1 should be in a new cell
+    if (nearby.size() == 2 &&
+        nearby[0]->x == 8.0f && nearby[0]->y == 8.0f &&
+        nearby[1]->x == 15.0f && nearby[1]->y == 15.0f) {
+        std::cout << "✅ Test 2 Passed\n";
+    } else {
+        std::cerr << "❌ Test 2 Failed\n";
+    }
+
+    // Test expired pointer
+    {
+        auto e4 = std::make_shared<TestEntity>(5.0f, 5.0f);
+        grid.add(e4);
+
+        // e4 goes out of scope
+    }
+
+    grid.update();
+
+    nearby = grid.getNearby(5.0f, 5.0f);
+    std::cout << "After expiration:\n";
+    printNearby(nearby, "Nearby Entities");
+
+    if (nearby.empty()) {
+        std::cout << "✅ Test 3 Passed (expired object removed)\n";
+    } else {
+        std::cerr << "❌ Test 3 Failed\n";
+    }
+
+    std::cout << "All tests passed!\n";
+    return 0;
+}
