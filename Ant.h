@@ -78,9 +78,10 @@ class Ant {
 			bool push(const Job& job);
 			bool remove(const std::string& name);
 			bool contains(const std::string& name) const;
-			Job& getCurrent();
+			Job* getCurrent();
 			void setCurrent(const std::string& name);
 			void pop();
+			void clearCurrent();
 			const std::vector<Job>& getAllJobs() const;
 			size_t size() const;
 		};

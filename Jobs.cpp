@@ -115,58 +115,97 @@ std::vector<Ant::Job> Queen::queen_jobs = {
 
 
 
-bool Ant::Job::JobStack::push(const Job& job) {
-
-	if (jobNames.find(job.name) != jobNames.end()) {
-		return false;
-	}
-
-	jobs.push_back(job);
-	jobNames.insert(job.name);
-	return true;
-}
-
-bool Ant::Job::JobStack::remove(const std::string& name) {
-	auto it = std::find_if(jobs.begin(), jobs.end(),
-		[&](const Job& j) { return j.name == name; });
-	if (it != jobs.end()) {
-		jobs.erase(it);
-		jobNames.erase(name);
-		return true;
-	}
-	return false;
-}
-
-bool Ant::Job::JobStack::contains(const std::string& name) const {
-	return jobNames.find(name) != jobNames.end();
-}
-
-Ant::Job& Ant::Job::JobStack::getCurrent() {
-	if (currentJobIndex >= 0 && static_cast<size_t>(currentJobIndex) < jobs.size()) {
-		return jobs[currentJobIndex];
-	}
-	throw std::out_of_range("No current job set or index out of range.");
 
 
-}
 
-void Ant::Job::JobStack::setCurrent(const std::string& name) {
-	for (size_t i = 0; i < jobs.size(); ++i) {
-		if (jobs[i].name == name) {
-			currentJobIndex = static_cast<int>(i);
-			break;
-		}
-	}
-}
+    // Push a new job (only if not already present)
+    bool Ant::Job::JobStack::push(const Job& job) {
+        // Check for duplicates by name
+        for (const auto& existing : jobs) {
+            if (existing.name == job.name) {
+                return false;
+            }
+        }
 
-void Ant::Job::JobStack::pop() {
-	currentJobIndex = -1;
-}
+        jobs.push_back(job);
+        if (currentJobIndex == -1) {
+            currentJobIndex = static_cast<int>(jobs.size() - 1);
+        }
+        return true;
+    }
 
-const std::vector<Ant::Job>& Ant::Job::JobStack::getAllJobs() const {
-	return jobs;
-}
+    // Remove a job by name
+    bool Ant::Job::JobStack::remove(const std::string& name) {
+        auto it = std::find_if(jobs.begin(), jobs.end(),
+            [&](const Job& j) { return j.name == name; });
 
-size_t Ant::Job::JobStack::size() const {
-	return jobs.size();
-}
+        if (it != jobs.end()) {
+            int index = static_cast<int>(&(*it) - jobs.data());
+
+            jobs.erase(it);
+
+            // If removed job was current, clear current
+            if (index == currentJobIndex && !jobs.empty()) {
+                if (!jobs.empty() && index < static_cast<int>(jobs.size())) {
+                    currentJobIndex = std::min(currentJobIndex, static_cast<int>(jobs.size()) - 1);
+                }
+                else {
+                    currentJobIndex = -1;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    // Check if a job with this name exists
+    bool Ant::Job::JobStack::contains(const std::string& name) const {
+        return std::any_of(jobs.begin(), jobs.end(),
+            [&](const Job& j) { return j.name == name; });
+    }
+
+    // Get current job
+    Ant::Job* Ant::Job::JobStack::getCurrent() {
+        if (currentJobIndex >= 0 && currentJobIndex < static_cast<int>(jobs.size())) {
+            return &jobs[currentJobIndex];
+        }
+        return nullptr;
+    }
+
+    // Set current job by name
+    void Ant::Job::JobStack::setCurrent(const std::string& name) {
+        for (size_t i = 0; i < jobs.size(); ++i) {
+            if (jobs[i].name == name) {
+                currentJobIndex = static_cast<int>(i);
+                break;
+            }
+        }
+    }
+
+    // Pop current job from stack
+    void Ant::Job::JobStack::pop() {
+        if (currentJobIndex >= 0 && currentJobIndex < static_cast<int>(jobs.size())) {
+            jobs.erase(jobs.begin() + currentJobIndex);
+            if (currentJobIndex >= static_cast<int>(jobs.size())) {
+                currentJobIndex = jobs.empty() ? -1 : static_cast<int>(jobs.size()) - 1;
+            }
+        }
+    }
+
+    // Clear current job
+    void Ant::Job::JobStack::clearCurrent() {
+        currentJobIndex = -1;
+    }
+
+    // Get all jobs
+    const std::vector<Ant::Job>& Ant::Job::JobStack::getAllJobs() const {
+        return jobs;
+    }
+
+    // Get size of job list
+    size_t Ant::Job::JobStack::size() const {
+        return jobs.size();
+    }
+};
