@@ -1,4 +1,4 @@
-
+#pragma once
 #include "Ant.h"
 #include "Simulation.h"
 

@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include "Ant.h"
-#include "Jobs.cpp"
 #include "Pheromone.h"
 
 class MindControl {

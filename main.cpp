@@ -25,13 +25,12 @@ sf::Vector2f getRandomPosition(const sf::FloatRect& bounds)
 int main()
 {
     sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
-    sf::RenderWindow window(desktopMode, "Ant Simulation", sf::Style::Fullscreen);
+    sf::RenderWindow window(desktopMode, "Ant Simulation", sf::Style::Default);
     window.setFramerateLimit(60);
 
-	siml.colonies.emplace_back((NUM_ANTS,sf::Color(139, 69, 19)));
-	siml.colonies.emplace_back((NUM_ANTS,sf::Color::Black));
-    siml.foodSources.emplace_back(Food(sf::Vector2f(600, 400))); // Example food
-    siml.foodSources.emplace_back(Food(sf::Vector2f(800, 500)));
+    
+    siml.foodSources.push_back(make_shared<Food>((sf::Vector2f(600, 400)))); // Example food
+    siml.foodSources.push_back(make_shared<Food>((sf::Vector2f(800, 500))));
     
 
 
@@ -103,9 +102,16 @@ int main()
     for (int i = 0; i < numFoodPieces; ++i)
     {
         sf::Vector2f randomPosition = getRandomPosition(worldBounds);
-        siml.foodSources.emplace_back(Food(randomPosition)); // Add food to the world
+        siml.foodSources.push_back(make_shared<Food>(randomPosition)); // Add food to the world
 
     }
+
+    auto colony1 = std::make_shared<Colony>(NUM_ANTS, sf::Color(139, 69, 19), nestPosition );
+    colony1->ants.resize(NUM_ANTS);
+    siml.colonies.push_back(colony1);
+
+
+
 
     // // Create ants
     // for (int i = 0; i < NUM_ANTS; ++i)
@@ -125,6 +131,10 @@ int main()
         layer.setPosition(otherNestPosition);
         otherNestLayers.push_back(layer);
     }
+
+    auto colony2 = std::make_shared<Colony>(NUM_ANTS, sf::Color::Black, otherNestPosition);
+    //colony2->ants.resize(NUM_ANTS);
+    siml.colonies.push_back(colony2);
     // constexpr int  NUM_OTHER_ANTS = 30;
     // for (int i = 0; i < NUM_OTHER_ANTS; ++i)
     // {
@@ -132,8 +142,8 @@ int main()
     // }
 
     // Load food with textures
-    siml.foodSources.emplace_back(Food(sf::Vector2f(600, 400))); // Example food
-    siml.foodSources.emplace_back(Food(sf::Vector2f(800, 500)));
+    siml.foodSources.emplace_back(make_shared<Food>(sf::Vector2f(600, 400))); // Example food
+    siml.foodSources.emplace_back(make_shared<Food>(sf::Vector2f(800, 500)));
     sf::Clock clock;
 
     // Create a view for controlling the visible area

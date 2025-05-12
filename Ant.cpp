@@ -1,8 +1,9 @@
+#pragma once
 #include "Ant.h"
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
-#include "Jobs.cpp"
+#include "Simulation.h"
 Ant::Ant(sf::Vector2f pos, Colony* colony)
     : position(pos), speed(ANT_SPEED), hasFood(false),
       legAngleOffset(0), animationTimer(0), bodyRotation(0), mouth(this)
@@ -44,7 +45,8 @@ Ant::Ant(sf::Vector2f pos, Colony* colony)
 
 
  void Ant::spray(pherotype p, float strength, sf::Vector2f pos,bool is_request) {
-	colony->pheromones.emplace_back(pos, p, strength,is_request);
+	std::shared_ptr<Pheromone> pt = std::make_shared<Pheromone>(pos, p, strength);
+    colony->pheromones.push_back(pt);
     
 	colony->pheromoneGrid.add(colony->pheromones.back());
 
@@ -312,7 +314,9 @@ Colony::Colony(int number_of_ants, sf::Color color, sf::Vector2f pos  )
 {
     // Initialize the colony with a given number of ants and color
     for (int i = 0; i < number_of_ants; ++i) {
-        ants.emplace_back(std::make_shared<Ant>(sf::Vector2f(0, 0), this));
+        auto temp = std::make_shared<Ant>(pos, this);
+        ants.push_back(temp);
+        //ants.emplace_back(/*std::make_shared<Ant>*/(sf::Vector2f(0, 0), this));
         ants.back()->colony = this;
         ants.back()->body.setFillColor(color);
         ants.back()->head.setFillColor(color);
