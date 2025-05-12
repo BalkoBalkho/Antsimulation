@@ -131,6 +131,7 @@ std::vector<Ant::Job> Queen::queen_jobs = {
         if (currentJobIndex == -1) {
             currentJobIndex = static_cast<int>(jobs.size() - 1);
         }
+		else currentJobIndex++;
         return true;
     }
 
@@ -167,11 +168,11 @@ std::vector<Ant::Job> Queen::queen_jobs = {
     }
 
     // Get current job
-    Ant::Job* Ant::Job::JobStack::getCurrent() {
+    Ant::Job& Ant::Job::JobStack::getCurrent() {
         if (currentJobIndex >= 0 && currentJobIndex < static_cast<int>(jobs.size())) {
-            return &jobs[currentJobIndex];
+            return jobs[currentJobIndex];
         }
-        return nullptr;
+		throw std::out_of_range("No current job available");
     }
 
     // Set current job by name
@@ -208,4 +209,3 @@ std::vector<Ant::Job> Queen::queen_jobs = {
     size_t Ant::Job::JobStack::size() const {
         return jobs.size();
     }
-};
