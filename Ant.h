@@ -8,7 +8,7 @@
 #include <unordered_set>
 #include <map>
 #include "PherenomeQueue.hpp"
-#include "hashgrid.hpp"
+//#include "hashgrid.hpp"
 
 
 //class MindControl;
@@ -163,7 +163,7 @@ class Colony {
 	std::vector <std::shared_ptr<Ant>> ants; // A vector to store all the ants in the colony.
     std::vector <std::shared_ptr<Queen>> queens; // A vector to store all the queens in the colony.
 	std::list<std::shared_ptr<Pheromone>> pheromones; // A list of pointers to store pheromones in the colony.
-	HashGrid<Pheromone> pheromoneGrid; // A hash grid to manage (local) pheromones in the colony's area.
+	
 	void update(float dt);
 	Colony(int number_of_ants = NUM_ANTS, sf::Color color = sf::Color::Red, sf::Vector2f pos = {810.0f,560.0f} ); // Constructor to initialize the colony with a specified number of ants and color.
 };

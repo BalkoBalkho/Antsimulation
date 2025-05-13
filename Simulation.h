@@ -16,14 +16,14 @@
     bool is_ant_controlled = false;
     float dt = 16.0f;
     uint64_t seed = 0;
-    HashGrid<Ant> antGrid;
-    HashGrid<Food> foodGrid;
-    World* world;
+    std::list<std::shared_ptr<Ant>> all_ants;
+    
+    //HashGrid<Ant> antGrid;
+    //HashGrid<Food> foodGrid;
+    World world;
 
     sf::Sound eatSound;
     bool soundplayed=false;
-
-
     
     // Optional: Add a function to add new ants/food
     // void addAnt(const std::shared_ptr<Ant>& ant) {
@@ -41,6 +41,19 @@
 
 extern struct simulation siml;
 
-inline float get_distance(sf::Vector2f a, sf::Vector2f b) {
-    return std::sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+float get_distance(sf::Vector2f a, sf::Vector2f b);
+//template <typename T>
+// std::vector<T> findNearby(std::list<T> listtogoover, sf::Vector2f pos, float radius);
+
+template<typename T>
+std::vector<T> findNearby(std::list<T> listtogoover, sf::Vector2f pos, float radius)
+{
+    std::vector<T> nearby;
+    for (auto it : listtogoover) {
+        if (get_distance(it->position, pos) < radius) {
+            nearby.push_back(it);
+
+        }
+    }
+    return nearby;
 }
