@@ -73,7 +73,7 @@ material_type getColorFromNoise(float x, float y) {
 
 
 
-std::array<std::array<material_type, GRID_WIDTH>, GRID_HEIGHT> grid; // 2D array to store material types. Sisters query with their antanenae (and eyes)
+std::array<std::vector<material_type>, GRID_HEIGHT> grid = {}; // 2D array to store material types. Sisters query with their antanenae (and eyes)
 public:
 sf::VertexArray vertices;
 FastNoiseLite noise;
@@ -102,6 +102,7 @@ World() : vertices(sf::Quads, GRID_WIDTH * GRID_HEIGHT * 6) {
     vertices.setPrimitiveType(sf::Triangles);
     noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 	generateWorld();
+    
 }
 
 private:
@@ -114,7 +115,10 @@ void generateWorld() {
         for (int y = 0; y < GRID_HEIGHT; y++) {
             
             // Get noise value and color as before
-            sf::Color color = materialMap.at(getColorFromNoise(x, y)).color;
+			grid[y].resize(GRID_WIDTH);
+            auto m = getColorFromNoise(x, y);
+                grid[y][x] = m;
+            auto color = materialMap.at(m).color;
             // Calculate base index (6 vertices per tile)
             int baseIndex = (x + y * GRID_WIDTH) * 6;
 

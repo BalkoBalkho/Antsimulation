@@ -41,6 +41,9 @@ Ant::Ant(sf::Vector2f pos, Colony* colony)
     foodIndicator.setRadius(3);
     foodIndicator.setFillColor(sf::Color::Yellow);
     foodIndicator.setOrigin(3, 3);
+
+    this->colony = colony;
+    memories.emplace("home", pos);
 }
 
 
@@ -48,7 +51,7 @@ Ant::Ant(sf::Vector2f pos, Colony* colony)
 	std::shared_ptr<Pheromone> pt = std::make_shared<Pheromone>(pos, p, strength);
     colony->pheromones.push_back(pt);
     
-	colony->pheromoneGrid.add(colony->pheromones.back());
+//	colony->pheromoneGrid.add(colony->pheromones.back());
 
 }
 
@@ -85,7 +88,7 @@ void Ant::walk_straight(sf::Vector2f dirToTarget,float dt) {
     int tries = 0;
 
     TryMovingToPosition:
-    if (siml.world->isPassable(predictedPosition) || tries > 6) {
+    if (siml.world.isPassable(predictedPosition) || tries > 6) {
         // Move normally if passable
         direction = dirToTarget;
         position = predictedPosition;
@@ -307,6 +310,7 @@ Queen::Queen(sf::Vector2f pos, Colony* colony) : Ant(pos,colony) {
 	age = 0;
 	hunger = 0;
 	hp = 100; // Queen has more HP
+    this->colony = colony;
 	body.setFillColor(sf::Color::Red); // Different color for the queen
 }
 
@@ -315,6 +319,7 @@ Colony::Colony(int number_of_ants, sf::Color color, sf::Vector2f pos  )
     // Initialize the colony with a given number of ants and color
     for (int i = 0; i < number_of_ants; ++i) {
         auto temp = std::make_shared<Ant>(pos, this);
+
         ants.push_back(temp);
         //ants.emplace_back(/*std::make_shared<Ant>*/(sf::Vector2f(0, 0), this));
         ants.back()->colony = this;
@@ -324,6 +329,11 @@ Colony::Colony(int number_of_ants, sf::Color color, sf::Vector2f pos  )
     }
 	auto queen = std::make_shared<Queen>(pos,this);
     queens.push_back(queen);
+    queens.back()->colony = this;
+    queens.back()->body.setFillColor(color);
+    queens.back()->head.setFillColor(color);
+    queens.back()->foodIndicator.setFillColor(color);
+
 }
 
 void Colony::update(float dt) {

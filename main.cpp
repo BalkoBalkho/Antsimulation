@@ -150,7 +150,8 @@ int main()
     sf::View view(sf::FloatRect(0, 0, desktopMode.width, desktopMode.height));
     view.setCenter(nestPosition);
 
-    World world;
+    //World world;
+    siml.world;
     //world.generateWorld(); // Initialize the world with noise generation
 
     sf::SoundBuffer eatBuffer;
@@ -221,7 +222,7 @@ int main()
         window.setView(view);
 
         // Draw the world terrain
-        window.draw(world.vertices);
+        window.draw(siml.world.vertices);
 
         // Draw animated pheromones
         float time = clock.getElapsedTime().asSeconds(); // Use elapsed time for animation

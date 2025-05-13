@@ -10,11 +10,15 @@ void Ant::Job::execute(Ant& self, float dt) {
 	// Execute the job's work function
 	//HashGrid<Ant> antGrid;
 
-	eyes info = {
+	auto padsads = siml.all_ants;
+	findNearby(padsads,self.position,15);
 
-		siml.antGrid.getNearby(self.position),
-		siml.foodGrid.getNearby(self.position),
-		self.colony->pheromoneGrid.getNearby(self.position)
+	findNearby(siml.foodSources,self.position,15);
+	
+	eyes info = {
+		findNearby(padsads,self.position,15),
+		findNearby(siml.foodSources,self.position,15),
+		findNearby(self.colony->pheromones,self.position,15)
 
 	};
 	do_The_work(self, dt, info);
