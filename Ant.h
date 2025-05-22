@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <map>
 #include "PherenomeQueue.hpp"
+#include <functional>
 //#include "hashgrid.hpp"
 
 
@@ -48,8 +49,8 @@ class Ant {
 		};
 		Mouth mouth;
 	class Job {
-		using lambda = void(*)(Ant&, float dt,eyes info);
-		using get_percentage = float(*)(Ant&);
+		using lambda = std::function<void(Ant&, float dt, const eyes info)>;
+		using get_percentage = std::function<float(Ant&)>;
 		lambda do_The_work;
 		get_percentage neediness_of_this_job;
 	public:
@@ -58,7 +59,7 @@ class Ant {
 		float job_progress = 0.0f; // How far along the ant is in completing the job,
 		int patience =100; // How long the ant will wait before abandoning the job
 
-		void execute(Ant& self, float dt);
+		void execute(Ant& self, float dt); // colony.update -> 
 		float getNeediness(Ant& self, float dt);
 
 		Job(std::string name, pherotype type, lambda do_The_work, get_percentage neediness_of_this_job)
@@ -69,7 +70,7 @@ class Ant {
 		const static std::vector<Job> jobs;
 
 		class JobStack {
-		protected:
+		private:
 			std::vector<Job> jobs;
 			std::unordered_set<std::string> jobNames;
 			int currentJobIndex = -1;
@@ -89,7 +90,9 @@ class Ant {
 	};
 		
 		Colony* colony; // Pointer to the colony the ant belongs to. This pointers lifetime is long, no need to manage.	
-        const static std::vector<Job> available_jobs;
+//protected:
+		const static std::vector<Job> available_jobs;
+//private:
 		float favorite_number = 0.3f; // A random number for the ant's behavior, not used yet.
 		static constexpr bool is_movable = true;// can this entity move? internally used in hashgrid.
 
@@ -108,9 +111,9 @@ class Ant {
         void updateBodyParts();
 
 		Job::JobStack jobst; // Stack to manage jobs for the ant
-        int age;
-        int hunger;
-		int hp;
+        int age =0;
+        int hunger = -842150451;
+		int hp=100;
 		std::map<std::string, sf::Vector2f> memories; //used by job system, colony location and such. 
     public:
         sf::Vector2f position; // Tracks the ant's location in the simulation.
@@ -130,6 +133,8 @@ class Ant {
 
 		void follow_pherenome_trail(pherotype pl, float dt, bool weakest);
 		const std::vector<Ant::Job>& get_all_jobs();
+
+		sf::Vector2f getPosition() { return position; }
 
 
         //void update(float dt, std::vector<Pheromone>& pheromones, const std::vector<Food>& foods, const sf::Vector2f& nestPos);//handles ants movement, interactions with food, pheromones, and the nest.

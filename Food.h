@@ -4,10 +4,11 @@
 
 
 class Food {
-public:
     sf::Vector2f position;
+public:
     float quantity;
     sf::CircleShape shape;
 
+    sf::Vector2f getPosition() { return position; }
     Food(sf::Vector2f pos);
 };

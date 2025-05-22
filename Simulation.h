@@ -16,7 +16,7 @@
     bool is_ant_controlled = false;
     float dt = 16.0f;
     uint64_t seed = 0;
-    std::list<std::shared_ptr<Ant>> all_ants;
+    std::list<std::shared_ptr<Ant>> all_ants();
     
     //HashGrid<Ant> antGrid;
     //HashGrid<Food> foodGrid;
@@ -50,7 +50,7 @@ std::vector<T> findNearby(std::list<T> listtogoover, sf::Vector2f pos, float rad
 {
     std::vector<T> nearby;
     for (auto it : listtogoover) {
-        if (get_distance(it->position, pos) < radius) {
+        if (get_distance(it->getPosition(), pos) < radius) {
             nearby.push_back(it);
 
         }

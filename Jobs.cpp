@@ -10,15 +10,15 @@ void Ant::Job::execute(Ant& self, float dt) {
 	// Execute the job's work function
 	//HashGrid<Ant> antGrid;
 
-	auto padsads = siml.all_ants;
-	findNearby(padsads,self.position,15);
+	auto padsads = siml.all_ants();
+	findNearby(padsads,self.getPosition(),15);
 
-	findNearby(siml.foodSources,self.position,15);
+	findNearby(siml.foodSources,self.getPosition(),15);
 	
 	eyes info = {
-		findNearby(padsads,self.position,15),
-		findNearby(siml.foodSources,self.position,15),
-		findNearby(self.colony->pheromones,self.position,15)
+		findNearby(padsads,self.getPosition(),15),
+		findNearby(siml.foodSources,self.getPosition(),15),
+		findNearby(self.colony->pheromones,self.getPosition(),15)
 
 	};
 	do_The_work(self, dt, info);
@@ -36,13 +36,13 @@ float Ant::Job::getNeediness(Ant& self, float dt)
 const std::vector<Ant::Job> Ant::available_jobs = {
 	/*0*/      Job("1. Roaming around for food.", pherotype::food_finding,
 			  [](Ant& t,float dt, eyes info) {
-			//t.spray(pherotype::food_finding, 0.5f, t.position);
+			//t.spray(pherotype::food_finding, 0.5f, t.getPosition());
 			t.moveRandomly(dt);
 		   if (info.n_foods.size() > 0) { //food found
-			   auto ps = info.n_foods.at(0).get()->position;
+			   auto ps = info.n_foods.at(0).get()->getPosition();
 
 			   //t.memories.emplace("food",ps);
-			   t.spray(pherotype::food, 1.0f,t.position);
+			   t.spray(pherotype::food, 1.0f,t.getPosition());
 				t.jobst.pop();
 			   t.jobst.push(Ant::available_jobs.at(2)); //food spotted
 
@@ -62,12 +62,12 @@ const std::vector<Ant::Job> Ant::available_jobs = {
 		/*1*/  Job("2. follow food trails", pherotype::food_finding,
 			[](Ant& t,float dt, eyes info) {
 						if (info.n_foods.size() > 0) {
-						auto ps = info.n_foods.at(0).get()->position;
-						if (get_distance(ps, t.position) < 10.0f)
+						auto ps = info.n_foods.at(0).get()->getPosition();
+						if (get_distance(ps, t.getPosition()) < 10.0f)
 						t.jobst.pop();
 						t.mouth.pickUpFood(*info.n_foods.at(0));
 						t.jobst.push(Ant::available_jobs.at(3));
-						t.spray(pherotype::food, 0.8f, t.position);
+						t.spray(pherotype::food, 0.8f, t.getPosition());
 					   }
 						else t.follow_pherenome_trail(pherotype::food, dt, true);
 				},
@@ -80,12 +80,13 @@ const std::vector<Ant::Job> Ant::available_jobs = {
 
 		/*3*/  Job("3. go home with food", pherotype::food_finding,
 			[](Ant& t,float dt, eyes info) {
-
+				
+				t.spray(pherotype::food_finding, 1.0f, t.getPosition());
 				t.gotoCORD(t.memories.at("home"), dt);
-				if (get_distance(t.memories.at("home"), t.position) < 10.0f) {
+				if (get_distance(t.memories.at("home"), t.getPosition()) < 10.0f) {
 					t.jobst.pop();
-					t.mouth.dropFood(t.position);
-					t.spray(pherotype::food, 0.8f, t.position);
+					t.mouth.dropFood(t.getPosition());
+					t.spray(pherotype::food, 0.8f, t.getPosition());
 					t.jobst.pop();
 				}
 			},
@@ -100,19 +101,16 @@ const std::vector<Ant::Job> Ant::available_jobs = {
 
 
 std::vector<Ant::Job> Queen::queen_jobs = {
-		Job("1. Roaming around for food.", pherotype::food_finding,
+		Job("children", pherotype::food_finding,
 			[](Ant& t,float dt, eyes info) {
-				t.moveRandomly(dt);
-				if (info.n_foods.size() > 0) { //food found
-					auto ps = info.n_foods.at(0).get()->position;
-					t.spray(pherotype::food, 1.0f, t.position);
-					t.jobst.pop();
-					t.jobst.push(Ant::available_jobs.at(2)); //food spotted
-					return;
+				if (std::rand() % 100 < 5) {
+					t.spray(pherotype::colony, 1.0f, t.getPosition());
+					t.colony->ants.push_back(std::make_shared<Ant>(t.getPosition(), t.colony));
+					
 				}
 			},
 			[](Ant& t) -> float {
-				return 0.0f + (float)t.hunger / 10.0f;
+				return 1.0f;
 			}
 		),
 };

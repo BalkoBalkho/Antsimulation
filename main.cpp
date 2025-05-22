@@ -12,6 +12,7 @@
 #include "Constants.h"
 #include "World.h"
 #include "Simulation.h"
+#include "MindControl.hpp"
 
 using namespace std;
 
@@ -35,7 +36,7 @@ int main()
 
 
     //vector<sf::RectangleShape> obstacles;
-    sf::FloatRect worldBounds(0, 0, desktopMode.width * 4, desktopMode.height * 4);
+    sf::FloatRect worldBounds(0, 0, desktopMode.width * 1, desktopMode.height * 1);
 
     sf::View miniMapView(sf::FloatRect(0, 0, worldBounds.width, worldBounds.height));
     miniMapView.setViewport(sf::FloatRect(0.8f, 0.8f, 0.2f, 0.2f)); // Bottom-right corner
@@ -54,7 +55,7 @@ int main()
     {
         sf::CircleShape antDot(2); // Smaller dots for mini-map
         antDot.setFillColor(sf::Color::Red);
-        antDot.setPosition(ant->position);
+        antDot.setPosition(ant->getPosition());
         window.draw(antDot);
     }
 
@@ -63,7 +64,7 @@ int main()
     {
         sf::CircleShape foodDot(3);
         foodDot.setFillColor(sf::Color::Green);
-        foodDot.setPosition(food->position);
+        foodDot.setPosition(food->getPosition());
         window.draw(foodDot);
     }
 
@@ -145,6 +146,7 @@ int main()
     siml.foodSources.emplace_back(make_shared<Food>(sf::Vector2f(600, 400))); // Example food
     siml.foodSources.emplace_back(make_shared<Food>(sf::Vector2f(800, 500)));
     sf::Clock clock;
+    float fast_foward = 1.0f;
 
     // Create a view for controlling the visible area
     sf::View view(sf::FloatRect(0, 0, desktopMode.width, desktopMode.height));
@@ -157,7 +159,7 @@ int main()
     sf::SoundBuffer eatBuffer;
     siml.eatSound;
     
-    if (!eatBuffer.loadFromFile("/Users/asmabatool/Downloads/stml/src/eat_crunch.ogg"))
+    if (!eatBuffer.loadFromFile("./eat_crunch.ogg"))
     {
         std::cerr << "Failed to load eating sound!" << std::endl;
     }
@@ -166,7 +168,9 @@ int main()
 
     while (window.isOpen())
     {
-        float dt = clock.restart().asSeconds();
+        window.setView(miniMapView);
+
+        float dt = clock.restart().asSeconds() * fast_foward;
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -213,16 +217,29 @@ int main()
             view.move(1000 * dt, 0);
         }
 
-        // Update pheromones
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::RShift))
+        {
+            if (fast_foward == 1.0f)
+                fast_foward = 2.5f; // it cant be too high because the collision check becomes innacurate unfortuantly
+            // only way to fix that would be to use a raycast 
+			else
+				fast_foward = 1.0f;
+        }
+
         
          siml.soundplayed = false;
         
         // Draw everything
         window.clear(sf::Color(50, 50, 50));
-        window.setView(view);
 
         // Draw the world terrain
+        
+        window.setView(view);
         window.draw(siml.world.vertices);
+        
+        
+
 
         // Draw animated pheromones
         float time = clock.getElapsedTime().asSeconds(); // Use elapsed time for animation
@@ -230,11 +247,11 @@ int main()
         for (auto& p : c->pheromones)
         {
             float pulse = 1.0f + 0.2f * std::sin(time * 3.0f); // Pulsing effect
-            float size = std::max(1.0f, p->strength / 50.0f) * pulse;
+            float size = std::max(1.0f, p->strength / 50.0f) * pulse * 3;
 
             sf::CircleShape dot(size);
             dot.setPosition(p->getPosition() - sf::Vector2f(size / 2, size / 2)); // Center the dot
-            sf::Uint8 alpha = static_cast<sf::Uint8>(std::min(255.0f, p->strength));
+            sf::Uint8 alpha =  static_cast<sf::Uint8>(std::min(255.0f, p->strength *150));
             dot.setFillColor(p->hasFood ? sf::Color(0, 255, 0, alpha) : sf::Color(255, 255, 255, alpha));
             window.draw(dot);
         }
@@ -243,7 +260,7 @@ int main()
         {
             sf::CircleShape foodShape(10);
             foodShape.setFillColor(sf::Color::Yellow);
-            foodShape.setPosition(food->position);
+            foodShape.setPosition(food->getPosition());
             window.draw(foodShape);
         }
 
@@ -268,8 +285,11 @@ int main()
         //     window.draw(obstacle);
         // }
 
-        window.display();
         window.setView(view);
+        window.setView(miniMapView);
+
+        window.draw(siml.world.vertices);
+        window.display();
     }
 
     return 0;

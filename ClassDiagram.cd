@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="HashGrid&lt;T&gt;" Collapsed="true">
+    <Position X="8.5" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEAAAAAIAAAAAAAAAAIAAAAAAgAAAAAAAgAAGQAA=</HashCode>
+      <FileName>hashgrid.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ant" Collapsed="true">
+    <Position X="2.5" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAIAAQkCAAYAAgAMJQIIAkAQZQAQAAgEBAFEEEAEA=</HashCode>
+      <FileName>Ant.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Queen" Collapsed="true">
+    <Position X="2.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAAAAAAAAAAABAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Ant.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Colony" Collapsed="true">
+    <Position X="5" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAACAAAABAAAAAAAAAAAAAAgQAAAAAAAAEAAA=</HashCode>
+      <FileName>Ant.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Food" Collapsed="true">
+    <Position X="6.75" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAIAAAAAAAAACAAAAAAgAABAA=</HashCode>
+      <FileName>Food.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Pheromone" Collapsed="true">
+    <Position X="5" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAIAAAAAAAAAAEAAAAIAAAASABAAAAQAAAAEAgAAA=</HashCode>
+      <FileName>Pheromone.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="World" Collapsed="true">
+    <Position X="6.75" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAoAABKAAAAAABAAIAAAAABQAAAAAAAAAACEAAA=</HashCode>
+      <FileName>World.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="std::hash&lt;std::pair&lt;int, int&gt;&gt;" Collapsed="true">
+    <Position X="5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>hashgrid.hpp</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="simulation" Collapsed="true">
+    <Position X="7" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAEQAAAAAAQAAAgAAAAAAAAgAAAAIAAAQAAAAAAIE=</HashCode>
+      <FileName>Simulation.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Enum Name="pherotype" Collapsed="true">
+    <Position X="5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAQAAAIAgAAAgAAAAAAAEAAAAAAAAAAAAAEI=</HashCode>
+      <FileName>Pheromone.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

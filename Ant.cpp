@@ -99,9 +99,9 @@ void Ant::walk_straight(sf::Vector2f dirToTarget,float dt) {
         //sf::Vector2f wallNormal(0.0f, 1.0f); // Example wall normal
         //direction = direction - 2.0f * dot(direction, wallNormal) * wallNormal;
 
-        rotate(3.14159f / 3); // Turn 60 degrees if an obstacle is detected
+        rotate(3.14159f / 2); // Turn 90 degrees if an obstacle is detected
 
-        predictedPosition += direction * speed * dt;
+        predictedPosition = position + direction * speed * (dt);;
         tries++;
         goto TryMovingToPosition; //bro found a use for goto, a terrible C++ feature
     }
@@ -304,14 +304,16 @@ void Ant::rotate(float angle)
 Queen::Queen(sf::Vector2f pos, Colony* colony) : Ant(pos,colony) {
 
 	// Initialize queen-specific properties
-	speed = 0.0f; // Queen doesn't move like worker ants
+	speed = 0.1f; // Queen doesn't move like worker ants
 	hasFood = false;
 	isSelected = false;
 	age = 0;
 	hunger = 0;
 	hp = 100; // Queen has more HP
     this->colony = colony;
-	body.setFillColor(sf::Color::Red); // Different color for the queen
+    body.setOutlineThickness(10);
+
+    
 }
 
 Colony::Colony(int number_of_ants, sf::Color color, sf::Vector2f pos  )
@@ -338,11 +340,11 @@ Colony::Colony(int number_of_ants, sf::Color color, sf::Vector2f pos  )
 
 void Colony::update(float dt) {
     for (auto& p : pheromones)
-            p->strength *= PHEROMONE_DECAY;
-    pheromones.erase(remove_if(pheromones.begin(), pheromones.end(),
+            p->strength *= 1;
+    /*pheromones.erase(remove_if(pheromones.begin(), pheromones.end(),
         [](const auto& p)
-            { return p->strength < 0.1f; }),
-                pheromones.end());
+            { return p->strength < 0.01f; }),
+                pheromones.end());*/
     
     for (auto& q : queens) q->update(dt);
     for (auto& a : ants) a->update(dt);

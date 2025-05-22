@@ -17,3 +17,14 @@ float get_distance(sf::Vector2f a, sf::Vector2f b)
 //		}
 //	}
 //}
+
+std::list<std::shared_ptr<Ant>> simulation::all_ants()
+{
+    std::list<std::shared_ptr<Ant>> e;
+    for (auto c: colonies) {
+        for (auto a : c->ants) {
+            e.push_back(a);
+        }
+    }
+    return e;
+}
